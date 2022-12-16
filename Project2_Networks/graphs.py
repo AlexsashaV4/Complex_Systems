@@ -76,6 +76,88 @@ def max_likelihood_powerlaw(data):
     alpha = 1 + n/(np.sum(np.log(data)))
     return alpha
    
+def Adj_matrix(graph): # Very slow for large graphs (Better function with nx library, which uses scipy.sparse.csr_matrix)
+    # Adjacency matrix in undirected graphs is symmetric
+    A = np.zeros((graph.GetNodes(), graph.GetNodes()))
+    for i in range(graph.GetNodes()):
+        for j in range(graph.GetNodes()):
+            if graph.IsEdge(i, j):
+                A[i, j] = 1
+    return A
+
+def calculate_C (title): # Use both nx and my function to compare results
+    G = nx.read_edgelist(title, nodetype=int)
+    #exclude the isolated nodes from the graph
+    G.remove_nodes_from(list(nx.isolates(G))) # Remove isolated nodes
+    A = nx.adjacency_matrix(G) # Sparse matrix
+    # check if there are no self loops 
+    #print("Self loops:", A.diagonal().sum())
+    cf2nx = nx.clustering(G)
+    cf2nx = np.array(list(cf2nx.items()))
+    #print("Cluster coefficient with NX:", np.mean(cf2nx[cf2nx<=1]))
+    # Personal method
+    v_deg = np.array(A.sum(axis=0))[0] # get an array with the degree of each node
+    A3 = (A.dot(A)).dot(A) # Expensive operation
+    A3diag = (A3.diagonal())
+    cf2 = np.zeros(len(A3diag))
+    for i in range(len(A3diag)):
+        if v_deg[i] > 1:
+            cf2[i] = A3diag[i]/(v_deg[i]*(v_deg[i]-1))
+    #print("Cluster coefficient from the adjacency matrix:", np.mean(cf2))
+    return np.mean(cf2nx[cf2nx<=1]), np.mean(cf2)
+
+def poisson_distribution(degree_sequence, r):
+    return [np.exp(-r)*r**k/np.math.factorial(k) for k in degree_sequence]
+
+def plot_deg_distr_poisson(degrees, norm_value , th_distr, i, colors, log=False):
+    """Plot the degree distribution of a graph
+    Parameters
+    ----------
+    degrees : array
+        Array of degrees
+    norm_value : array
+        Array of counts normalized by the number of nodes
+    th_distr : array
+        Array of values from the th distribution
+    i : string 
+        Name of the graph
+    colors : array
+        Array of colors
+    log : bool
+        If True, the plot is in log-log scale"""
+    plt.style.use("seaborn")
+    plt.plot( degrees,norm_value, linestyle='', marker='o', markersize=4.0, label= "Degree distribution " + i, color=colors[0])
+    # ax.set_xscale('log')
+    # ax.set_yscale('log')
+    plt.plot( degrees,th_distr, linestyle='', marker='o', markersize=4.0, label= "Estimated Poisson distribution", color=colors[1])
+    if log:
+        plt.xscale('log')
+        plt.yscale('log')
+    plt.xlabel("k")
+    plt.ylabel("P(k)")
+    plt.title("Degree distribution of " + i + " graph")
+    plt.legend(loc ='best')
+    plt.savefig("degree_distribution_pois_nolog.eps")
+    plt.show()
+
+def average_degree_nn(graph):
+    number_of_vertices=graph.GetNodes()
+    print("number of nodes:",number_of_vertices)
+    number_of_edges=graph.CntUniqUndirEdges()
+    print("number of edges:", number_of_edges)
+    print("average degree:",number_of_edges*2/number_of_vertices)
+    # We will now calculate the average degree of the neighbors of a vertex.
+    # We ignore isolated nodes
+    CntV = graph.GetOutDegCnt()
+    average_degrees=[]
+    for NI in graph.Nodes():
+        degrees=[]
+        for Id in NI.GetOutEdges():
+            degrees.append(graph.GetNI(Id).GetOutDeg())
+        if len(degrees)>0:
+            average_degrees.append(np.mean(degrees))
+    the_average=np.mean(average_degrees)
+    print("average degree of neighbors",the_average)
 
 """
 INPUT: A string containing the name of the file to be loaded (.txt file)
@@ -89,7 +171,13 @@ def f(title):
     for i in title:
         print("=============================================")
         print("Extracting the Graph from:", i)
-        graph=snap.LoadEdgeList(snap.TUNGraph, i, 0, 1)
+        graph=snap.LoadEdgeList(snap.TUNGraph, i, 0, 1) # TUNG load the undirected graph
+        # print("Part 1: Clustering coefficient")
+        # cf2nx, cf2 = calculate_C(i)
+        # print("Cluster coefficient with NX:", cf2nx)
+        # print("Cluster coefficient with my function:", cf2)
+        # cf = graph.GetClustCf()
+        # print("Cluster coefficient with Snap library:", cf)
         #graph.DelZeroDegNodes()
         # Graph size 
     #     print("Number of nodes:", graph.GetNodes())
@@ -144,6 +232,7 @@ def f(title):
     #     cf2alt= np.sum(A3diag)/(np.sum(v_deg[not_zero]*(v_deg[not_zero]-1)))
     #     print("Cluster coefficient from the adjacency matrix alternative:", cf2alt)
 
+        print("Part 2: Degree distribution")
         #We calculate the degree distribution of the graph by using the SNAP library
         CntV = graph.GetOutDegCnt()
         #This is done in a log-log plot
@@ -157,42 +246,23 @@ def f(title):
         # This happens when a values of the degrees is skipped.
         # Also, this helps because we don't get 0 values of which the logarithm would be -infinity
         for p in CntV:
-            if len(degrees)>1: # We need at least two values to compare
-                if degrees[-1]>degrees[-2]+1:
-                    break
             if p.GetVal1()!=0 and p.GetVal2()!=0:
                 degrees.append(p.GetVal1())
                 counts.append(p.GetVal2())
-        log_degrees=[np.log(x) for x in degrees ]
         number_of_vertices=sum(counts)
-        log_counts=[np.log(x) for x in counts]
         # print the shape of v_deg
 
         #make the plot decent looking
         
         norm_vert = [a/number_of_vertices for a in counts]
-        print("np.unique(norm_vert)", np.unique(norm_vert))
         #We delete values which are the logarithm of infinity
     
         # Plot the poisson distribution that fits the degree distribution
         # This is only done for the roadNet-CA.txt graph
         if i==title[0]:
-            plt.style.use("seaborn")
-            plt.plot( degrees,[a/number_of_vertices for a in counts], linestyle='', marker='o', markersize=4.0, label= "Degree distribution " + i, color=colors[0])
-            # ax.set_xscale('log')
-            # ax.set_yscale('log')
-            # We calculate the average degree of the graph
             average_degree=2*graph.CntUniqUndirEdges()/graph.GetNodes()
-            # We calculate the poisson distribution
-            poisson=[np.exp(-average_degree)*average_degree**k/np.math.factorial(k) for k in degrees]
-            # We plot the poisson distribution
-            plt.plot( degrees,poisson, linestyle='', marker='o', markersize=4.0, label= "Estimated Poisson distribution", color=colors[1])
-            plt.xlabel("k")
-            plt.ylabel("P(k)")
-            plt.title("Degree distribution of " + i + " graph")
-            plt.legend(loc ='best')
-            plt.savefig("degree_distribution_pois_nolog.eps")
-            plt.show()
+            poisson =poisson_distribution(degrees,average_degree)
+            plot_deg_distr_poisson(degrees,norm_vert, poisson_distribution(degrees,average_degree), i , colors)
             # Calculate the KS distance between the poisson distribution and the degree distribution
             print("KS distance between the poisson distribution and the degree distribution:",KS_Dist(poisson,[a/number_of_vertices for a in counts]))
             # Calculate the JS divergence between the poisson distribution and the degree distribution
@@ -202,24 +272,19 @@ def f(title):
             # Calculate the chi-squared distance between the poisson distribution and the degree distribution
             # Calculate the chi square distance between the linear regression and the degree distribution
             print("Chi square distance between the linear regression and the degree distribution:",chi2_test([a/number_of_vertices for a in counts],poisson))
-        # plot the linear regression in the log-log plot with the slope alpha
         elif i==title[1]:
+            # power law estimation
             plt.style.use("seaborn")
             plt.plot( degrees,norm_vert, linestyle='', marker='o', markersize=3.0, label= "degree distribution " + i)
-            #ax.scatter(degrees,[a/number_of_vertices for a in counts] ,markersize = 0.5 ,label= "degree distribution " + i, color=colors[title.index(i)+1])
-            # best alpha from max likelihood use the function 
-            print("unique degrees:", np.unique(np.asarray(degrees)), "max degree:", max(degrees), "min degree:", min(degrees))
-            # plot the maximum likelihood estimate
-
-            # We calculate the maximum likelihood estimate
-            # We use the function from the powerlaw library
+            # Maximum likelihood estimation
             m = max_likelihood_powerlaw(degrees) 
             print("alpha from max likelihood:", m)
             plt.plot(degrees,(m-1)*degrees**(-m), label=" Power law estimation with  MLE", color = 'mediumpurple')
-            # m,b = np.polyfit(np.log(degrees), np.log(norm_vert), 1)
-            # print("alpha:",m)
-            # plt.plot(degrees,np.exp(b)*degrees**m, label="Linear regression", color = colors[1])
-            # poisson distribution
+            # Linear regression
+            m1,b1 = np.polyfit(np.log(degrees), np.log(norm_vert), 1)
+            print("alpha from linear regression:",m1)
+            plt.plot(degrees,np.exp(b1)*degrees**m1, label="Linear regression", color = colors[1])
+            # can plot also poisson distribution
             #average_degree=2*graph.CntUniqUndirEdges()/graph.GetNodes()
             # We calculate the poisson distribution
             #poisson=[np.exp(-average_degree)*average_degree**k/np.math.factorial(k) for k in degrees]
@@ -232,18 +297,18 @@ def f(title):
             plt.legend()
             plt.savefig("degree_distribution_scale.eps")
             plt.show()
-            # Calculate the KS distance between the linear regression and the degree distribution
-            print("KS distance between the linear regression and the degree distribution:",KS_Dist([(m-1)*x**(-m) for x in degrees],[a/number_of_vertices for a in counts]))
-            # Calculate the JS divergence between the linear regression and the degree distribution
-            print("JS divergence between the linear regression and the degree distribution:",JS_Div([(m-1)*x**(-m) for x in degrees],[a/number_of_vertices for a in counts]))
+            # Calculate the KS distance between the MLE and the degree distribution
+            print("KS distance between the MLE and the degree distribution:",KS_Dist([(m-1)*x**(-m) for x in degrees],[a/number_of_vertices for a in counts]))
+            # Calculate the JS divergence between the MLE and the degree distribution
+            print("JS divergence between the MLE and the degree distribution:",JS_Div([(m-1)*x**(-m) for x in degrees],[a/number_of_vertices for a in counts]))
             # Calculate the KL divergence between the linear regression and the degree distribution
-            print("KL divergence between the linear regression and the degree distribution:",KL_div([(m-1)*x**(-m) for x in degrees],[a/number_of_vertices for a in counts]))
+            print("KL divergence between the MLE and the degree distribution:",KL_div([(m-1)*x**(-m) for x in degrees],[a/number_of_vertices for a in counts]))
             # Calculate the chi square distance between the linear regression and the degree distribution
-            print("Chi square distance between the linear regression and the degree distribution:",chi2_test([a/number_of_vertices for a in counts][100:],[(m-1)*x**(-m) for x in degrees][100:]))
+            print("Chi square distance between the MLE and the degree distribution:",chi2_test([a/number_of_vertices for a in counts][100:],[(m-1)*x**(-m) for x in degrees][100:]))
+
             # hill estimator
             # print("Hill estimator:", Hill_estimator([a/number_of_vertices for a in counts]))
             # # plot the hill estimator
-            
             # plt.figure(figsize=(15, 6))
             # #plot the data points
             # h = Hill_estimator(norm_vert[4:-100])
@@ -255,23 +320,7 @@ def f(title):
             # plt.ylabel("fit with (Hill Estimate)", fontsize=18)
             # plt.title("Hill Plot (right tail)", fontsize=20)
             # plt.show()
-        print("The graph is scale free with parameter alpha?")
-        print("number of nodes:",number_of_vertices)
-        number_of_edges=graph.CntUniqUndirEdges()
-        print("number of edges:", number_of_edges)
-        print("average degree:",number_of_edges*2/number_of_vertices)
-        # We will now calculate the average degree of the neighbors of a vertex.
-        # We ignore isolated nodes
-        CntV = graph.GetOutDegCnt()
-        average_degrees=[]
-        for NI in graph.Nodes():
-            degrees=[]
-            for Id in NI.GetOutEdges():
-                degrees.append(graph.GetNI(Id).GetOutDeg())
-            if len(degrees)>0:
-                average_degrees.append(np.mean(degrees))
-        the_average=np.mean(average_degrees)
-        print("average degree of neighbors",the_average)
+        average_degree_nn(graph)
         print("=============================================")
 titles=["roadNet-TX.txt","com-dblp.ungraph.txt"]
 f(titles)
