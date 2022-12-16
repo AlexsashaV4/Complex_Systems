@@ -172,12 +172,12 @@ def f(title):
         print("=============================================")
         print("Extracting the Graph from:", i)
         graph=snap.LoadEdgeList(snap.TUNGraph, i, 0, 1) # TUNG load the undirected graph
-        # print("Part 1: Clustering coefficient")
-        # cf2nx, cf2 = calculate_C(i)
-        # print("Cluster coefficient with NX:", cf2nx)
-        # print("Cluster coefficient with my function:", cf2)
-        # cf = graph.GetClustCf()
-        # print("Cluster coefficient with Snap library:", cf)
+        print("Part 1: Clustering coefficient")
+        cf2nx, cf2 = calculate_C(i)
+        print("Cluster coefficient with NX:", cf2nx)
+        print("Cluster coefficient with my function:", cf2)
+        cf = graph.GetClustCf()
+        print("Cluster coefficient with Snap library:", cf)
         #graph.DelZeroDegNodes()
         # Graph size 
     #     print("Number of nodes:", graph.GetNodes())
