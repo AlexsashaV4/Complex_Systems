@@ -1,0 +1,56 @@
+\documentclass[a4paper, twocolumn]{article}
+\usepackage{packages}
+\usepackage{graphicx, float}
+\usepackage{multicol}
+\newtheorem{theorem}{Theorem}
+
+
+\newcommand{\ve}[1]{\mathbf{#1}}
+%\newcommand{\bra}[1]{\left\langle #1 \right|}
+%\newcommand{\ket}[1]{\left| #1 \right\rangle}
+\newcommand{\bracket}[2]{\left\langle #1 \middle| #2 \right\rangle}
+\newcommand{\bracketOP}[3]{\left\langle #1 \middle| #3 \middle| #2 \right\rangle}
+
+\title{\LARGE Kuramoto Model\\ \vspace{4mm}}
+\author{\textsc{Alexander Ferraro} }
+\vspace{200mm}
+\date{\today}
+\date{\today}
+
+\begin{document}
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\newpage
+\twocolumn[{
+\begin{titlepage}
+	\begin{center}
+    \line(1,0){300}\\
+    [0.65cm]
+	\huge{\bfseries Complex Networks}\\
+	\line(1,0){300}\\
+	\textsc{\Large  Project 2}\\
+	[6.5cm] 
+	\textsc{\Large Alexander Ferraro} 
+  \end{center}
+\end{titlepage}
+\vspace{200mm}
+\date{\today}
+\vspace{12mm}
+}]
+\newpage
+\tableofcontents
+
+
+% \newpage
+\section{Introduction}
+\input{Sections/introduction.tex}
+\label{sec:intro}
+\section{Theory: Kuramoto model}
+\input{Sections/Theory.tex}
+\label{sec:Theory}
+%\printbibliography
+%\nocite{*}
+
+
+\end{document}

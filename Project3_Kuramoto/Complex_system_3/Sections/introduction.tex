@@ -1,0 +1,11 @@
+
+The Kuramoto model is a mathematical model used to describe the collective behavior of $N$ coupled oscillators. Each oscillator is represented by a phase angle $\theta_i$, which evolves over time according to the following equation\footnote{The original Kuramoto model was developed with the $\sin$ function. Nonetheless Kuramoto showed that for any system of weakly coupled, nearly limit-cycle oscillators, long term dynamics are given by phase equations where the $\sin$ term is replaced by a generic function $\Gamma_{ij}(\theta_j-\theta_i)$, generalysing the model \\} :
+\begin{equation}
+    \frac{d}{dt}\theta_i(t) = \omega_i + \frac{K}{N} \sum_j \sin(\theta_j(t) - \theta_i(t))
+    \label{eq:kura}
+\end{equation}
+with $i = 1, . . . , N$, the frequencies $\omega_i$ are i.i.d random variables and $K$ the coupling constant. 
+
+If the coupling K is small each oscillator rotates with its natural frequency $\omega_i$, whereas for large coupling K almost all angles $\theta_i$ will be entrained by the mean field and the oscillators synchronize. This model emphasises a phase transition, such that it will exist a critical value of the coupling $K_c$ where for $K>K_c$ the system is synchronized ($\dot{\theta_i} = \dot{\theta}$), while for $K<K_c$ no such state exists.
+
+In this project we study first a simple case where the natural frequencies of the rotators are known and in the second part, when they are sampled from a probability distribution $g(\omega)$.
