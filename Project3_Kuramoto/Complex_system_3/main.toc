@@ -1,0 +1,5 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\babel@toc {english}{}
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}%
+\contentsline {section}{\numberline {2}Theory: Kuramoto model}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Lyapunov Function }{2}{subsection.2.1}%

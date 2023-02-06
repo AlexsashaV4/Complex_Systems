@@ -1,0 +1,73 @@
+\subsection{Lyapunov Function }
+
+In this first half we concentrate on phase locking state and exhibit a Lyapunov function.
+One can define the arithmetical\footnote{ This is an aritmetical mean, however as $N \to \infty$ the quantity $\Bar{\omega}$) is a nonrandom number and equals the mean $\int d \mu(\omega) \omega$ by the strong law of large numbers.} mean frequency to be: 
+\begin{equation}
+\bar{\omega}:=\frac{1}{N} \sum_{i=1}^N \omega_i
+\label{eq: meanOmega}
+\end{equation}
+and intuitively think that it is the common frequency of the phase locked component. In fact, 
+\begin{align*}
+    \frac{d}{d t}\left(\frac{1}{N} \sum_{i=1}^N \theta_i(t)\right)&= \left(\frac{1}{N} \sum_{i=1}^N \frac{d}{d t} \theta_i(t)\right) \\
+\intertext{from equation \ref{eq:kura}:} \\ 
+&= \left( \frac{1}{N} \sum_i \omega_i \right) + \frac{K}{N^2} \sum_{i,j} \sin(\theta_j(t) - \theta_i(t))
+\end{align*}
+Since $i, j = 1, \dots , N$, in the calculations one encounters the terms $\theta_i - \theta_j$ as well $\theta_j - \theta_i$ and since the sum is and odd function: 
+\begin{equation*}
+    \sin(\theta_i - \theta_j) = - \sin(\theta_j - \theta_i) 
+\end{equation*}
+hence the term $i,j$ and $j,i$ cancels out.
+More precisely, we can separate the initial sum: 
+\begin{equation*}
+    \sum_{i>j} \sin(\theta_j - \theta_i) +  \sum_{i<j} \sin(\theta_j - \theta_i) 
+\end{equation*}
+exchanging $i$ with $j$ in the second one we get $\sum_{j<i} \sin(\theta_i - \theta_j) = - \sum_{j<i} \sin(\theta_j - \theta_i) $ which is exacly equal to the first term in the sum. 
+we then are left with: 
+\begin{equation}
+    \frac{d}{d t}\left(\frac{1}{N} \sum_{i=1}^N \theta_i(t)\right) = \frac{1}{N} \sum_{i=1}^N \omega_i = \bar{\omega}
+\end{equation}
+
+Now one can consider the new variables $\phi_i$ in the reference frame rotating with $\omega=\Bar{\omega}$: 
+\begin{equation*}
+    \phi_i(t) = \theta_i(t) - \Bar{omega}t
+\end{equation*}
+
+so that the Kuramoto model becomes:
+\begin{equation}
+  \frac{d \phi_i}{d t}(t)=\left(\omega_i-\bar{\omega}\right)+\frac{K}{N} \sum_{j=1}^N \sin \left(\phi_j(t)-\phi_i(t)\right)  
+  \label{eq:kura_ref}
+\end{equation}
+
+At this point we can introduce the Lyapunov function to study the nature of stable points (if they exists):
+
+\begin{equation}
+\mathcal{H}:=-\frac{K}{2 N} \sum_{i, j} \cos \left(\phi_i-\phi_j\right)-\sum_{i=1}^N\left(\omega_i-\bar{\omega}\right) \phi_i.
+\label{eq:lyapunov}
+\end{equation}
+To be a good guess for a Lyapunov Function must satisfy:
+\begin{equation}
+\dot{\mathcal{H}}=\sum_{l=1}^N \frac{\partial \mathcal{H}}{\partial \phi_l} \frac{d \phi_l}{d t} \leq 0, 
+\label{eq:lyap_cond}
+\end{equation}
+for any solution $\phi_i$. 
+
+
+The term $\frac{d \phi_l}{d t}$ is given by eq. (\ref{eq:kura_ref}), while the term $\frac{\partial \mathcal{H}}{\partial \phi_l}$ is: 
+\begin{align*}
+    \frac{\partial \mathcal{H}}{\partial \phi_l} &= +\frac{K}{2 N} \sum_{i, j} \sin \left(\phi_i-\phi_j\right) (\delta_{i,l} - \delta_{j,l}\\
+    &-\sum_{i=1}^N\left(\omega_i-\bar{\omega}\right) \delta_{i,l} \\
+    &= -\frac{K}{2 N} \sum_{j} \sin \left(\phi_j-\phi_l\right)-\left(\omega_l-\bar{\omega}\right)\\
+\end{align*}
+one can notice that this term is equal to eq. \ref{eq:lyap_cond} except for a global minus sign\footnote{This means that $\phi_i = -\nabla \mathcal{H}$ we can represent the dynamics of the system thought the Lyapunov function which now can be considered as a potential }. 
+Therefore:
+\begin{equation*}
+    \dot{\mathcal{H}}=-\sum_{l=1}^N \left(\frac{\partial \mathcal{H}}{\partial \phi_l}\right)^2  
+\end{equation*}
+which is non positive. 
+
+Moreover we can write down the equation for the extreme points, and check their nature:
+\begin{align*}
+    \nabla \mathcal{H} = 0 = \frac{K}{2 N} \sum_{j} \sin \left(\phi_j-\phi_l\right)+\left(\omega_l-\bar{\omega}\right)\\
+\end{align*}
+
+
